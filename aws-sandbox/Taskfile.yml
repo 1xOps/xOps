@@ -1,0 +1,69 @@
+# =============================================================================
+# AWS Sandbox - Taskfile for External Users
+# =============================================================================
+# Simple commands to use aws-sandbox npm package
+# Install: npm install -g aws-sandbox
+# Docs: https://www.npmjs.com/package/aws-sandbox
+# =============================================================================
+
+version: '3'
+
+vars:
+  VERSION: "0.2.1"
+
+tasks:
+  default:
+    desc: Show available commands
+    cmds:
+      - |
+        echo "AWS Sandbox v{{.VERSION}} - Quick Start"
+        echo "========================================"
+        echo ""
+        echo "Commands:"
+        echo "  task install    Install aws-sandbox from npm"
+        echo "  task test       Run Tier 1+2 tests (free)"
+        echo "  task deploy     Deploy to LocalStack"
+        echo "  task upgrade    Upgrade to latest version"
+        echo ""
+        echo "Usage:"
+        echo "  aws-sandbox --help"
+        echo "  aws-sandbox test --tier=1"
+        echo "  aws-sandbox deploy --localstack"
+
+  install:
+    desc: Install aws-sandbox from npm
+    cmds:
+      - npm install -g aws-sandbox@{{.VERSION}}
+      - aws-sandbox --version
+
+  test:
+    desc: Run Tier 1+2 tests (free, no AWS credentials)
+    cmds:
+      - aws-sandbox test --tier=1
+      - aws-sandbox test --tier=2
+
+  test:tier1:
+    desc: Run Tier 1 snapshot tests only
+    cmds:
+      - aws-sandbox test --tier=1
+
+  test:tier2:
+    desc: Run Tier 2 LocalStack tests only
+    cmds:
+      - aws-sandbox test --tier=2
+
+  deploy:
+    desc: Deploy to LocalStack
+    cmds:
+      - aws-sandbox deploy --localstack
+
+  upgrade:
+    desc: Upgrade to latest version
+    cmds:
+      - npm install -g aws-sandbox@latest
+      - aws-sandbox --version
+
+  help:
+    desc: Show aws-sandbox help
+    cmds:
+      - aws-sandbox --help

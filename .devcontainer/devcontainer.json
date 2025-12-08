@@ -1,0 +1,32 @@
+{
+  "name": "AWS Sandbox",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "sandbox",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "amazonwebservices.aws-toolkit-vscode",
+        "hashicorp.terraform"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+  "postCreateCommand": "npm install -g aws-sandbox && aws-sandbox --version",
+  "postStartCommand": "echo 'AWS Sandbox ready. Run: aws-sandbox test --tier=1'",
+  "remoteUser": "root",
+  "forwardPorts": [4566, 5173],
+  "portsAttributes": {
+    "4566": {
+      "label": "LocalStack",
+      "onAutoForward": "notify"
+    },
+    "5173": {
+      "label": "Frontend",
+      "onAutoForward": "openBrowser"
+    }
+  }
+}

@@ -1,0 +1,63 @@
+# =============================================================================
+# AWS Sandbox - Root Taskfile for External Users
+# =============================================================================
+# Entry point for external users of aws-sandbox npm package
+# Docs: https://www.npmjs.com/package/aws-sandbox
+# =============================================================================
+
+version: '3'
+
+includes:
+  sandbox:
+    taskfile: ./aws-sandbox/Taskfile.yml
+    dir: ./aws-sandbox
+
+tasks:
+  default:
+    desc: Show quick start guide
+    cmds:
+      - task: quickstart
+
+  quickstart:
+    desc: Quick start guide for external users
+    cmds:
+      - |
+        echo "AWS Sandbox Quick Start"
+        echo "======================="
+        echo ""
+        echo "Option 1: VSCode/Codespaces (recommended)"
+        echo "  1. Open this folder in VSCode"
+        echo "  2. Click 'Reopen in Container' when prompted"
+        echo "  3. Wait for container to start (aws-sandbox auto-installs)"
+        echo "  4. Run: aws-sandbox test --tier=1"
+        echo ""
+        echo "Option 2: npm install (standalone)"
+        echo "  npm install -g aws-sandbox"
+        echo "  aws-sandbox --version"
+        echo "  aws-sandbox --help"
+        echo ""
+        echo "Available Tasks:"
+        echo "  task sandbox:install   Install aws-sandbox from npm"
+        echo "  task sandbox:test      Run Tier 1+2 tests (free)"
+        echo "  task sandbox:deploy    Deploy to LocalStack"
+        echo "  task sandbox:upgrade   Upgrade to latest version"
+
+  install:
+    desc: Install aws-sandbox from npm
+    cmds:
+      - task: sandbox:install
+
+  test:
+    desc: Run Tier 1+2 tests
+    cmds:
+      - task: sandbox:test
+
+  deploy:
+    desc: Deploy to LocalStack
+    cmds:
+      - task: sandbox:deploy
+
+  upgrade:
+    desc: Upgrade to latest version
+    cmds:
+      - task: sandbox:upgrade

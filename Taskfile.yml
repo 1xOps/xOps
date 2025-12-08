@@ -61,3 +61,13 @@ tasks:
     desc: Upgrade to latest version
     cmds:
       - task: sandbox:upgrade
+
+  test:tier1:
+    desc: Run Tier 1 snapshot tests only
+    cmds:
+      - task: sandbox:test:tier1
+
+  test:tier2:
+    desc: Run Tier 2 LocalStack tests only
+    cmds:
+      - task: sandbox:test:tier2

@@ -9,7 +9,7 @@
 version: '3'
 
 vars:
-  VERSION: "0.2.1"
+  VERSION: "0.2.3"
 
 tasks:
   default:
@@ -33,7 +33,7 @@ tasks:
   install:
     desc: Install aws-sandbox from npm
     cmds:
-      - npm install -g aws-sandbox@{{.VERSION}}
+      - npm install -g aws-sandbox@{{.VERSION}} --ignore-scripts
       - aws-sandbox --version
 
   test:
@@ -60,7 +60,7 @@ tasks:
   upgrade:
     desc: Upgrade to latest version
     cmds:
-      - npm install -g aws-sandbox@latest
+      - npm install -g aws-sandbox@latest --ignore-scripts
       - aws-sandbox --version
 
   help:

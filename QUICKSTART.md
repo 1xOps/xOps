@@ -13,7 +13,7 @@ cd xOps
 code .
 
 # 3. When prompted, click "Reopen in Container"
-#    aws-sandbox installs automatically
+#    aws-sandbox installs automatically via --ignore-scripts
 
 # 4. Run tests
 aws-sandbox test --tier=1
@@ -22,7 +22,8 @@ aws-sandbox test --tier=1
 ### Option 2: npm Install (Standalone)
 
 ```bash
-npm install -g aws-sandbox@0.2.1
+# Use --ignore-scripts to avoid workspace issues
+npm install -g aws-sandbox --ignore-scripts
 aws-sandbox --version
 aws-sandbox --help
 ```
@@ -34,6 +35,8 @@ cd xOps
 task quickstart          # Show quick start guide
 task install             # Install aws-sandbox from npm
 task test                # Run Tier 1+2 tests (free)
+task test:tier1          # Tier 1 only (snapshot)
+task test:tier2          # Tier 2 only (LocalStack)
 task deploy              # Deploy to LocalStack
 ```
 
@@ -46,7 +49,7 @@ task deploy              # Deploy to LocalStack
 | 1 | `task test:tier1` | Snapshot tests | $0 (2-3 sec) |
 | 2 | `task test:tier2` | LocalStack tests | $0 (30-60 sec) |
 | 3 | `task deploy` | Deploy to LocalStack | $0 |
-| 4 | `task evidence:generate` | Generate evidence-report.html | $0 |
+| 4 | `task sandbox:evidence:generate` | Evidence generation guide | $0 |
 | 5 | `task upgrade` | Upgrade to latest version | $0 |
 
 ---
@@ -103,13 +106,65 @@ aws --endpoint-url=http://localhost:4566 s3 ls
 
 ---
 
+## LocalStack Service Coverage
+
+| Service | Tier 1 | Tier 2 | Tier 3 | Notes |
+|---------|--------|--------|--------|-------|
+| DynamoDB | ✅ Mock | ✅ Full | ✅ Full | Complete support |
+| S3 | ✅ Mock | ✅ Full | ✅ Full | Complete support |
+| Lambda | ✅ Mock | ✅ Full | ✅ Full | Runs actual code |
+| API Gateway | ✅ Mock | ✅ Full | ✅ Full | REST API supported |
+| CloudFormation | ✅ Synth | ✅ Full | ✅ Full | CDK-local uses cfn-local |
+| IAM | ✅ Mock | ✅ Full | ✅ Full | Policies enforced |
+| EventBridge | ✅ Mock | ✅ Full | ✅ Full | Rules and targets |
+| Step Functions | ✅ Mock | ✅ Full | ✅ Full | State machines |
+| SNS/SQS | ✅ Mock | ✅ Full | ✅ Full | Pub/sub |
+| Organizations | ⚠️ Mock | ⚠️ Limited | ✅ Required | Account creation AWS-only |
+| IAM Identity Center | ⚠️ Mock | ❌ N/A | ✅ Required | SSO requires real AWS |
+| CloudFront | ⚠️ Mock | ⚠️ Pro | ✅ Full | LocalStack Pro feature |
+| WAF | ⚠️ Mock | ❌ N/A | ✅ Required | No LocalStack support |
+
+**LocalStack Docs**: https://docs.localstack.cloud/user-guide/aws/feature-coverage/
+
+---
+
 ## Package Info
 
 - **npm**: https://www.npmjs.com/package/aws-sandbox
-- **Version**: 0.2.1
+- **Version**: 0.2.3
 - **License**: Apache-2.0
 - **GitHub**: https://github.com/1xOps/sandbox
 
 ```bash
-npm install -g aws-sandbox@0.2.1
+# Install with --ignore-scripts for global install
+npm install -g aws-sandbox --ignore-scripts
+```
+
+---
+
+## Troubleshooting
+
+### npm install fails with "Workspaces not supported"
+
+Use `--ignore-scripts` flag:
+```bash
+npm install -g aws-sandbox --ignore-scripts
+```
+
+### aws-sandbox command not found
+
+Run install again:
+```bash
+task install
+# or
+npm install -g aws-sandbox --ignore-scripts
+```
+
+### task test:tier1 not found
+
+Use full path:
+```bash
+task sandbox:test:tier1
+# or from root
+task test:tier1
 ```

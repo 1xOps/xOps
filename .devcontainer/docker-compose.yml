@@ -36,10 +36,18 @@ services:
     container_name: aws-sandbox-dev
     working_dir: /workspace
     environment:
+      # Core LocalStack endpoint
       - AWS_ENDPOINT_URL=http://localstack:4566
+      # Service-specific endpoint for AWS SDK v3 (ADR-002)
+      - AWS_ENDPOINT_URL_S3=http://localstack:4566
+      # Force path-style S3 access (required for LocalStack)
+      - AWS_S3_USE_PATH_STYLE=true
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
       - AWS_DEFAULT_REGION=us-east-1
+      # CDK configuration for LocalStack
+      - CDK_DEFAULT_ACCOUNT=000000000000
+      - CDK_DEFAULT_REGION=us-east-1
     volumes:
       - ..:/workspace:cached
       - ~/.aws:/root/.aws:ro

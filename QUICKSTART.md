@@ -124,7 +124,35 @@ aws --endpoint-url=http://localhost:4566 s3 ls
 | CloudFront | ⚠️ Mock | ⚠️ Pro | ✅ Full | LocalStack Pro feature |
 | WAF | ⚠️ Mock | ❌ N/A | ✅ Required | No LocalStack support |
 
-**LocalStack Docs**: https://docs.localstack.cloud/user-guide/aws/feature-coverage/
+* **LocalStack Docs**: https://docs.localstack.cloud/user-guide/aws/feature-coverage/
+* **Key Insight**:
+    * [x] DataStack + ComputeStack = 90% of code, testable at $0
+    * [ ] AccountPoolStack + IDCStack = Tier 3 required for runtime, but Tier 1 snapshots still validate templates
+
+<details>
+    <summary>LocalStack Service Coverage</summary>
+
+    > Tier 3 Required (No Free LocalStack Support)
+
+    | Service                  | Stack       | Reason               |
+    |--------------------------|-------------|----------------------|
+    | AWS Organizations        | AccountPool | Ultimate tier only   |
+    | IAM Identity Center      | IDC         | Ultimate tier only   |
+    | WAFv2                    | Compute     | Ultimate tier only   |
+    | Service Control Policies | AccountPool | Org-level governance |
+
+    > Tier 1+2 Safe (LocalStack Free)
+
+    | Service                     | Confidence | Notes          |
+    |-----------------------------|------------|----------------|
+    | S3, DynamoDB                | High       | Full CRUD      |
+    | Lambda, Step Functions      | High       | Full execution |
+    | API Gateway REST            | High       | Routes, auth   |
+    | SQS, SNS, EventBridge       | High       | Full support   |
+    | KMS, IAM, CloudFormation    | High       | Core ops       |
+    | Secrets Manager, CloudWatch | High       | Full support   |
+
+</details>
 
 ---
 

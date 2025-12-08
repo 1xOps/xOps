@@ -67,3 +67,22 @@ tasks:
     desc: Show aws-sandbox help
     cmds:
       - aws-sandbox --help
+
+  evidence:generate:
+    desc: Generate evidence-report.html (run from sandbox/cdk)
+    cmds:
+      - |
+        echo "Evidence Generation Commands"
+        echo "============================"
+        echo ""
+        echo "Run from sandbox/cdk directory:"
+        echo "  cd /Volumes/Working/projects/sandbox/cdk"
+        echo ""
+        echo "  task docs:screenshot:html    # Generate evidence-report.html"
+        echo "  task docs:screenshot:view    # Open in browser"
+        echo "  task evidence:capture        # Full evidence capture"
+        echo ""
+        echo "Output:"
+        echo "  tmp/cdk/evidence-report.html"
+        echo "  tmp/cdk/test-results/"
+        echo "  tmp/cdk/screenshots/"

@@ -26,6 +26,16 @@ aws-sandbox test --tier=1
 npm install -g aws-sandbox --ignore-scripts
 aws-sandbox --version
 aws-sandbox --help
+
+# Install
+npm install -g aws-sandbox@0.2.4 --ignore-scripts
+
+# Test
+aws-sandbox test --tier=1
+aws-sandbox test --tier=2
+
+# Deploy to LocalStack
+aws-sandbox deploy --localstack
 ```
 
 ### Option 3: Task Runner
@@ -159,7 +169,7 @@ aws --endpoint-url=http://localhost:4566 s3 ls
 ## Package Info
 
 - **npm**: https://www.npmjs.com/package/aws-sandbox
-- **Version**: 0.2.3
+- **Version**: 0.2.4
 - **License**: Apache-2.0
 - **GitHub**: https://github.com/1xOps/sandbox
 

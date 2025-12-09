@@ -28,7 +28,7 @@ aws-sandbox --version
 aws-sandbox --help
 
 # Install
-npm install -g aws-sandbox@0.2.4 --ignore-scripts
+npm install -g aws-sandbox@0.2.6 --ignore-scripts
 
 # Test
 aws-sandbox test --tier=1
@@ -169,7 +169,7 @@ aws --endpoint-url=http://localhost:4566 s3 ls
 ## Package Info
 
 - **npm**: https://www.npmjs.com/package/aws-sandbox
-- **Version**: 0.2.4
+- **Version**: 0.2.6
 - **License**: Apache-2.0
 - **GitHub**: https://github.com/1xOps/sandbox
 

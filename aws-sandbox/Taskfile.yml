@@ -9,7 +9,8 @@
 version: '3'
 
 vars:
-  VERSION: "0.2.4"
+  VERSION: "0.2.6"
+  EVIDENCE_DIR: "/workspace/tmp/aws-sandbox"
 
 tasks:
   default:
@@ -53,7 +54,7 @@ tasks:
       - aws-sandbox test --tier=2
 
   deploy:
-    desc: Deploy to LocalStack
+    desc: Deploy to LocalStack (requires source code - see output for options)
     cmds:
       - aws-sandbox deploy --localstack
 
@@ -69,20 +70,67 @@ tasks:
       - aws-sandbox --help
 
   evidence:generate:
-    desc: Generate evidence-report.html (run from sandbox/cdk)
+    desc: Generate validation evidence (actual execution, not instructions)
     cmds:
       - |
-        echo "Evidence Generation Commands"
-        echo "============================"
+        echo "=== AWS Sandbox Evidence Generation ==="
+        echo "Version: {{.VERSION}}"
+        echo "Timestamp: $(date -Iseconds)"
         echo ""
-        echo "Run from sandbox/cdk directory:"
-        echo "  cd /Volumes/Working/projects/sandbox/cdk"
+
+        # Create evidence directory
+        mkdir -p {{.EVIDENCE_DIR}}
+
+        # 1. CLI Version Evidence
+        echo "1. Capturing CLI version..."
+        aws-sandbox --version > {{.EVIDENCE_DIR}}/01-version.txt 2>&1
+        cat {{.EVIDENCE_DIR}}/01-version.txt
+
+        # 2. Tier 1 Test Evidence
         echo ""
-        echo "  task docs:screenshot:html    # Generate evidence-report.html"
-        echo "  task docs:screenshot:view    # Open in browser"
-        echo "  task evidence:capture        # Full evidence capture"
+        echo "2. Running Tier 1 test..."
+        aws-sandbox test --tier=1 2>&1 | tee {{.EVIDENCE_DIR}}/02-tier1-test.txt
+
+        # 3. Tier 2 Test Evidence (LocalStack connectivity)
         echo ""
-        echo "Output:"
-        echo "  tmp/cdk/evidence-report.html"
-        echo "  tmp/cdk/test-results/"
-        echo "  tmp/cdk/screenshots/"
+        echo "3. Running Tier 2 test..."
+        aws-sandbox test --tier=2 2>&1 | tee {{.EVIDENCE_DIR}}/03-tier2-test.txt
+
+        # 4. LocalStack Health Check
+        echo ""
+        echo "4. LocalStack health check..."
+        curl -sf http://localstack:4566/_localstack/health > {{.EVIDENCE_DIR}}/04-localstack-health.json 2>&1 || echo '{"error": "LocalStack not reachable"}' > {{.EVIDENCE_DIR}}/04-localstack-health.json
+        cat {{.EVIDENCE_DIR}}/04-localstack-health.json
+
+        # 5. Generate Summary
+        echo ""
+        echo "5. Generating summary..."
+        cat > {{.EVIDENCE_DIR}}/05-summary.md << EOF
+        # AWS Sandbox Evidence Report
+
+        **Generated**: $(date -Iseconds)
+        **Version**: {{.VERSION}}
+        **Mode**: Consumer (npm package)
+
+        ## Test Results
+
+        | Test | Status | Evidence |
+        |------|--------|----------|
+        | CLI Version | $(grep -q "{{.VERSION}}" {{.EVIDENCE_DIR}}/01-version.txt && echo "PASS" || echo "FAIL") | 01-version.txt |
+        | Tier 1 | $(grep -q "PASSED" {{.EVIDENCE_DIR}}/02-tier1-test.txt && echo "PASS" || echo "FAIL") | 02-tier1-test.txt |
+        | Tier 2 | $(grep -q "PASSED" {{.EVIDENCE_DIR}}/03-tier2-test.txt && echo "PASS" || echo "FAIL") | 03-tier2-test.txt |
+        | LocalStack | $(grep -q "running" {{.EVIDENCE_DIR}}/04-localstack-health.json && echo "PASS" || echo "N/A") | 04-localstack-health.json |
+
+        ## Files
+
+        \`\`\`
+        $(ls -la {{.EVIDENCE_DIR}}/)
+        \`\`\`
+        EOF
+
+        echo ""
+        echo "=== Evidence Generated ==="
+        echo "Directory: {{.EVIDENCE_DIR}}/"
+        ls -la {{.EVIDENCE_DIR}}/
+        echo ""
+        echo "Summary: {{.EVIDENCE_DIR}}/05-summary.md"

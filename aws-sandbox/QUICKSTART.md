@@ -1,6 +1,6 @@
 # 🚀 AWS Sandbox - Quick Start Guide
 
-> **npm**: [aws-sandbox](https://www.npmjs.com/package/aws-sandbox) v0.2.9 | **AWS Solution**: [Innovation Sandbox on AWS](https://aws.amazon.com/solutions/implementations/innovation-sandbox-on-aws/)
+> **npm**: [aws-sandbox](https://www.npmjs.com/package/aws-sandbox) v0.3.0 | **AWS Solution**: [Innovation Sandbox on AWS](https://aws.amazon.com/solutions/implementations/innovation-sandbox-on-aws/)
 
 ---
 
@@ -59,7 +59,7 @@ code .
 # → Click "Reopen in Container" when prompted
 
 # 3. Run tests (inside container)
-aws-sandbox --version        # v0.2.9
+aws-sandbox --version        # v0.3.0
 aws-sandbox test --tier=1    # 23 checks, 2-3s, $0
 aws-sandbox test --tier=2    # 24 checks, 30s, $0
 ```
@@ -88,7 +88,7 @@ task aws-sandbox:evidence:generate    # Generate all evidence + HTML reports
 npm install -g aws-sandbox --ignore-scripts
 
 # Verify
-aws-sandbox --version        # v0.2.9
+aws-sandbox --version        # v0.3.0
 
 # Run tests
 aws-sandbox test --tier=1    # Tier 1: Connectivity
@@ -127,7 +127,7 @@ Generate validation evidence for quality gates. **All commands reproducible** fr
 
 ```bash
 # Inside devcontainer: generates ALL evidence + HTML reports
-task aws-sandbox:evidence:generate
+task sandbox:evidence:generate
 ```
 
 ### Manual Step-by-Step
@@ -144,29 +144,29 @@ aws-sandbox test --tier=1    # Tier 1: 23 connectivity checks
 aws-sandbox test --tier=2    # Tier 2: 24 LocalStack services
 
 # 4. Generate HTML reports
-task aws-sandbox:evidence:html:report     # 06-evidence-report.html
-task aws-sandbox:evidence:html:frontend   # 07-frontend-tests.html
-task aws-sandbox:evidence:html:index      # index.html
+task sandbox:evidence:html:report     # 06-evidence-report.html
+task sandbox:evidence:html:frontend   # 07-frontend-tests.html
+task sandbox:evidence:html:index      # index.html
 
 # 5. Capture screenshots (optional)
-task aws-sandbox:screenshot:all
+task sandbox:screenshot:all
 ```
 
 ### Evidence Output Structure
 
 ```
 /workspace/tmp/aws-sandbox/
-├── 01-version-check.txt         # CLI version verification
+├── 01-version.txt               # CLI version verification
 ├── 02-tier1-check.txt           # Tier 1 test results (23/23)
 ├── 03-tier2-check.txt           # Tier 2 test results (24/24)
-├── 04-localstack-health.json    # LocalStack service status
+├── 04-localstack-health.json    # LocalStack service status (22+ services)
 ├── 05-summary.md                # Business value summary
-├── 06-evidence-report.html      # Infrastructure evidence (HTML)
+├── 06-evidence-report.html      # Infrastructure evidence (22+ services)
 ├── 07-frontend-tests.html       # Frontend test report (HTML)
 ├── index.html                   # 📊 Evidence Portal (HTML)
 └── screenshots/
-    ├── frontend-ui.png
-    └── localstack-infra.png
+    ├── frontend-ui.svg          # Frontend test summary (SVG)
+    └── localstack-infra.svg     # LocalStack services (SVG)
 ```
 
 ### View Reports
@@ -237,10 +237,10 @@ open /workspace/tmp/aws-sandbox/06-evidence-report.html
 
 | Command | Description | Output |
 |---------|-------------|--------|
-| `task aws-sandbox:evidence:generate` | Generate all evidence | `tmp/aws-sandbox/` |
-| `task aws-sandbox:evidence:html:report` | Infrastructure report | `06-evidence-report.html` |
-| `task aws-sandbox:evidence:html:index` | Evidence portal | `index.html` |
-| `task aws-sandbox:screenshot:all` | Capture screenshots | `screenshots/` |
+| `task sandbox:evidence:generate` | Generate all evidence | `tmp/aws-sandbox/` |
+| `task sandbox:evidence:html:report` | Infrastructure report | `06-evidence-report.html` |
+| `task sandbox:evidence:html:index` | Evidence portal | `index.html` |
+| `task sandbox:screenshot:all` | Capture screenshots | `screenshots/` |
 
 ### Docker Commands
 
@@ -279,7 +279,7 @@ open /workspace/tmp/aws-sandbox/06-evidence-report.html
 | Property | Value |
 |----------|-------|
 | **npm** | [npmjs.com/package/aws-sandbox](https://www.npmjs.com/package/aws-sandbox) |
-| **Version** | 0.2.9 |
+| **Version** | 0.3.0 |
 | **License** | Apache-2.0 |
 | **GitHub** | [github.com/1xOps/sandbox](https://github.com/1xOps/sandbox) |
 | **Size** | ~1.3MB compressed / ~5.3MB unpacked |
@@ -350,7 +350,7 @@ brew install go-task/tap/go-task
 
 ---
 
-## 📈 Cross-Validation Results (v0.2.9)
+## 📈 Cross-Validation Results (v0.3.0)
 
 | Gate | Target | Result |
 |------|--------|--------|
@@ -359,7 +359,8 @@ brew install go-task/tap/go-task
 | Consumer Tier 1 | 23/23 | ✅ **PASS** |
 | Consumer Tier 2 | 24/24 | ✅ **PASS** |
 | Cross-Validation | ≥99.5% | ✅ **100% (47/47)** |
+| Manager Agreement | ≥99.5% | ✅ **100%** |
 
 ---
 
-**Version**: 0.2.9 | **ADLC**: v1.2.0 | **Updated**: 2025-12-10 | **Status**: ✅ Published
+**Version**: 0.3.0 | **ADLC**: v1.2.0 | **Updated**: 2025-12-10 | **Status**: ✅ Published

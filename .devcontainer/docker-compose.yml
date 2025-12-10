@@ -1,0 +1,63 @@
+# =============================================================================
+# AWS Sandbox - Devcontainer for External Users
+# =============================================================================
+# For EXTERNAL USERS: Ready-to-use aws-sandbox environment
+# Usage: Clone repo → Open in VSCode → "Reopen in Container"
+#
+# After container starts, aws-sandbox is installed from npm automatically.
+# Run: aws-sandbox test --tier=1
+# =============================================================================
+
+services:
+  localstack:
+    image: localstack/localstack:latest
+    container_name: aws-sandbox-localstack
+    ports:
+      - "4566:4566"
+      - "4510-4559:4510-4559"
+    environment:
+      # All CDK-used services (20 total) - matches sandbox/cdk/docker-compose.base.yml
+      - SERVICES=s3,dynamodb,dynamodbstreams,lambda,apigateway,cloudformation,iam,sts,logs,events,ssm,secretsmanager,kms,sns,sqs,stepfunctions,kinesis,ec2,route53,acm
+      - DEBUG=0
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    volumes:
+      - localstack-data:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  sandbox:
+    image: nnthanh101/terraform:latest
+    container_name: aws-sandbox-dev
+    working_dir: /workspace
+    environment:
+      # Core LocalStack endpoint
+      - AWS_ENDPOINT_URL=http://localstack:4566
+      # Service-specific endpoint for AWS SDK v3 (ADR-002)
+      - AWS_ENDPOINT_URL_S3=http://localstack:4566
+      # Force path-style S3 access (required for LocalStack)
+      - AWS_S3_USE_PATH_STYLE=true
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+      # CDK configuration for LocalStack
+      - CDK_DEFAULT_ACCOUNT=000000000000
+      - CDK_DEFAULT_REGION=us-east-1
+    volumes:
+      - ..:/workspace:cached
+      - ~/.aws:/root/.aws:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      localstack:
+        condition: service_healthy
+    command: sleep infinity
+
+volumes:
+  localstack-data:
+    name: aws-sandbox-localstack-data

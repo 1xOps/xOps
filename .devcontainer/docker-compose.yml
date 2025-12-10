@@ -16,7 +16,8 @@ services:
       - "4566:4566"
       - "4510-4559:4510-4559"
     environment:
-      - SERVICES=s3,dynamodb,lambda,apigateway,cloudformation,iam,sts,logs
+      # All CDK-used services (20 total) - matches sandbox/cdk/docker-compose.base.yml
+      - SERVICES=s3,dynamodb,dynamodbstreams,lambda,apigateway,cloudformation,iam,sts,logs,events,ssm,secretsmanager,kms,sns,sqs,stepfunctions,kinesis,ec2,route53,acm
       - DEBUG=0
       - AWS_DEFAULT_REGION=us-east-1
       - AWS_ACCESS_KEY_ID=test

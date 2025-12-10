@@ -8,7 +8,8 @@
     "vscode": {
       "extensions": [
         "amazonwebservices.aws-toolkit-vscode",
-        "hashicorp.terraform"
+        "hashicorp.terraform",
+        "george-alisson.html-preview-vscode"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash"

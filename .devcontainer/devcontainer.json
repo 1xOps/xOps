@@ -16,7 +16,7 @@
       }
     }
   },
-  "postCreateCommand": "npm install -g aws-sandbox@0.2.9 --ignore-scripts && aws-sandbox --version",
+  "postCreateCommand": "npm install -g aws-sandbox@0.3.0 --ignore-scripts && aws-sandbox --version",
   "postStartCommand": "echo 'AWS Sandbox ready. Run: aws-sandbox test --tier=1'",
   "remoteUser": "root",
   "forwardPorts": [4566, 5173],

@@ -333,6 +333,8 @@ brew install go-task/tap/go-task
 # Or download from https://taskfile.dev/
 ```
 
+> `zip -r tmp.zip ./tmp/`
+
 ---
 
 ## 📚 Resources

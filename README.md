@@ -117,4 +117,41 @@
 
 ---
 
+## 🧪 AWS Sandbox - Zero-Cost Infrastructure Testing
+
+[![npm version](https://img.shields.io/npm/v/aws-sandbox.svg)](https://www.npmjs.com/package/aws-sandbox)
+
+**aws-sandbox** enables enterprise teams to validate AWS infrastructure at **$0 cost** using LocalStack before deploying to AWS.
+
+### Quick Start (VSCode Devcontainer)
+
+```bash
+# Open in VSCode → "Reopen in Container" when prompted
+code .
+
+# Inside container
+task quickstart          # Full end-to-end validation (5 steps)
+aws-sandbox test --tier=1  # 23 connectivity checks
+aws-sandbox test --tier=2  # 24 LocalStack services
+```
+
+### 3-Tier Testing Strategy
+
+| Tier | Type | Checks | Cost | Coverage |
+|------|------|--------|------|----------|
+| Tier 1 | Connectivity + Snapshot | 23 + 29 | **$0** | 70-80% |
+| Tier 2 | LocalStack Integration | 24 + 11 | **$0** | +15-20% |
+| Tier 3 | AWS Sandbox | 14 | ~$50/mo | +5-10% |
+
+### Business Value
+
+| Metric | Traditional | With aws-sandbox |
+|--------|-------------|------------------|
+| Testing Cost | $200-500/mo | **$0** (Tier 1+2) |
+| Feedback Loop | 15-30 min | **< 5 sec** |
+| AWS Bill Risk | High | **Zero** |
+
+📖 **Full Documentation**: [aws-sandbox/QUICKSTART.md](./aws-sandbox/QUICKSTART.md)
+
+---
 

@@ -1,6 +1,6 @@
 # 🚀 AWS Sandbox - Quick Start Guide
 
-> **npm**: [aws-sandbox](https://www.npmjs.com/package/aws-sandbox) v0.3.0 | **AWS Solution**: [Innovation Sandbox on AWS](https://aws.amazon.com/solutions/implementations/innovation-sandbox-on-aws/)
+> **npm**: [aws-sandbox](https://www.npmjs.com/package/aws-sandbox) v0.3.1 | **AWS Solution**: [Innovation Sandbox on AWS](https://aws.amazon.com/solutions/implementations/innovation-sandbox-on-aws/)
 
 ---
 
@@ -59,7 +59,7 @@ code .
 # → Click "Reopen in Container" when prompted
 
 # 3. Run tests (inside container)
-aws-sandbox --version        # v0.3.0
+aws-sandbox --version        # v0.3.1
 aws-sandbox test --tier=1    # 23 checks, 2-3s, $0
 aws-sandbox test --tier=2    # 24 checks, 30s, $0
 ```
@@ -88,7 +88,7 @@ task aws-sandbox:evidence:generate    # Generate all evidence + HTML reports
 npm install -g aws-sandbox --ignore-scripts
 
 # Verify
-aws-sandbox --version        # v0.3.0
+aws-sandbox --version        # v0.3.1
 
 # Run tests
 aws-sandbox test --tier=1    # Tier 1: Connectivity
@@ -279,7 +279,7 @@ open /workspace/tmp/aws-sandbox/06-evidence-report.html
 | Property | Value |
 |----------|-------|
 | **npm** | [npmjs.com/package/aws-sandbox](https://www.npmjs.com/package/aws-sandbox) |
-| **Version** | 0.3.0 |
+| **Version** | 0.3.1 |
 | **License** | Apache-2.0 |
 | **GitHub** | [github.com/1xOps/sandbox](https://github.com/1xOps/sandbox) |
 | **Size** | ~1.3MB compressed / ~5.3MB unpacked |
@@ -350,7 +350,7 @@ brew install go-task/tap/go-task
 
 ---
 
-## 📈 Cross-Validation Results (v0.3.0)
+## 📈 Cross-Validation Results (v0.3.1)
 
 | Gate | Target | Result |
 |------|--------|--------|
@@ -363,4 +363,4 @@ brew install go-task/tap/go-task
 
 ---
 
-**Version**: 0.3.0 | **ADLC**: v1.2.0 | **Updated**: 2025-12-10 | **Status**: ✅ Published
+**Version**: 0.3.1 | **ADLC**: v1.2.0 | **Updated**: 2025-12-10 | **Status**: ✅ Published

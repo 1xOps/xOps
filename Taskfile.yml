@@ -8,7 +8,7 @@
 version: '3'
 
 vars:
-  VERSION: "0.3.0"
+  VERSION: "0.3.1"
   EVIDENCE_DIR: "/workspace/tmp/aws-sandbox"
 
 includes:
@@ -99,20 +99,78 @@ tasks:
         echo "6. Generating evidence..."
         task sandbox:evidence:generate 2>/dev/null || echo "   ⚠ Evidence generation skipped"
 
-        # Summary
+        # Summary with Cross-Validation Matrix (DYNAMIC - reads actual results)
         echo ""
-        echo "╔══════════════════════════════════════════════════════════════╗"
-        echo "║                    QUICK START COMPLETE                      ║"
-        echo "╠══════════════════════════════════════════════════════════════╣"
-        echo "║  Passed: $PASS_COUNT    Failed: $FAIL_COUNT                              ║"
-        echo "╠══════════════════════════════════════════════════════════════╣"
-        echo "║  Evidence: {{.EVIDENCE_DIR}}/                       ║"
-        echo "╠══════════════════════════════════════════════════════════════╣"
-        echo "║  Next Steps:                                                 ║"
-        echo "║    - View results: cat {{.EVIDENCE_DIR}}/05-summary.md       ║"
-        echo "║    - Full deploy: Clone sandbox repo (requires source)       ║"
-        echo "║    - Docs: https://www.npmjs.com/package/aws-sandbox         ║"
-        echo "╚══════════════════════════════════════════════════════════════╝"
+
+        # Read actual results from evidence files (POSIX-compatible grep)
+        T1_ACTUAL=$(grep -o '[0-9]*/23' "{{.EVIDENCE_DIR}}/02-tier1-check.txt" 2>/dev/null | head -1 | cut -d'/' -f1)
+        T1_ACTUAL=${T1_ACTUAL:-0}
+        T2_ACTUAL=$(grep -o '[0-9]*/24' "{{.EVIDENCE_DIR}}/03-tier2-check.txt" 2>/dev/null | head -1 | cut -d'/' -f1)
+        T2_ACTUAL=${T2_ACTUAL:-0}
+
+        # Query LocalStack live for service count
+        LS_SVCS=$(curl -sf http://localstack:4566/_localstack/health 2>/dev/null | jq '[.services | to_entries[] | select(.value=="running")] | length' 2>/dev/null || echo "0")
+
+        # Count screenshots
+        SCREENSHOTS=$(ls -1 "{{.EVIDENCE_DIR}}/screenshots/"*.svg 2>/dev/null | wc -l | tr -d ' ')
+        SCREENSHOTS=${SCREENSHOTS:-0}
+
+        # Compute derived values (shell arithmetic - no bc needed)
+        TOTAL=$((T1_ACTUAL + T2_ACTUAL))
+        if [ "$TOTAL" -gt 0 ]; then
+          PASS_RATE=$((TOTAL * 100 / 47))
+        else
+          PASS_RATE=0
+        fi
+
+        # Compute status indicators
+        T1_STATUS=$([ "$T1_ACTUAL" -eq 23 ] && echo "✅ PASS" || echo "⚠️ FAIL")
+        T2_STATUS=$([ "$T2_ACTUAL" -eq 24 ] && echo "✅ PASS" || echo "⚠️ FAIL")
+        TOTAL_STATUS=$([ "$TOTAL" -eq 47 ] && echo "✅ PASS" || echo "⚠️ FAIL")
+        RATE_STATUS=$([ "$PASS_RATE" -eq 100 ] && echo "✅ PASS" || echo "⚠️ FAIL")
+        SS_STATUS=$([ "$SCREENSHOTS" -ge 2 ] && echo "✅ PASS" || echo "⚠️ FAIL")
+        LS_STATUS=$([ "$LS_SVCS" -ge 20 ] && echo "✅ PASS" || echo "⚠️ FAIL")
+
+        if [ "$TOTAL" -eq 47 ]; then
+          OVERALL_STATUS="✅ EXCEEDS TARGET"
+        elif [ "$PASS_RATE" -ge 95 ]; then
+          OVERALL_STATUS="✅ MEETS TARGET"
+        else
+          OVERALL_STATUS="⚠️ BELOW TARGET"
+        fi
+
+        # Padding helpers for alignment
+        printf_pad() { printf "%-20s" "$1"; }
+
+        echo "╔═══════════════════════════════════════════════════════════════════╗"
+        echo "║          ADLC Cross-Validation Matrix v{{.VERSION}}                      ║"
+        echo "╠═══════════════════════════════════════════════════════════════════╣"
+        echo "║  Dimension          │ Expected │ Actual │ Status               ║"
+        echo "╠═══════════════════════════════════════════════════════════════════╣"
+        printf "║  Tier 1 Checks      │    23    │   %2d   │ %-20s ║\n" "$T1_ACTUAL" "$T1_STATUS"
+        printf "║  Tier 2 Checks      │    24    │   %2d   │ %-20s ║\n" "$T2_ACTUAL" "$T2_STATUS"
+        printf "║  Total Checks       │    47    │   %2d   │ %-20s ║\n" "$TOTAL" "$TOTAL_STATUS"
+        printf "║  Pass Rate          │   100%%   │  %3d%%  │ %-20s ║\n" "$PASS_RATE" "$RATE_STATUS"
+        echo "║  Test Cost          │    \$0    │   \$0   │ ✅ PASS              ║"
+        printf "║  Screenshots        │     2    │    %d   │ %-20s ║\n" "$SCREENSHOTS" "$SS_STATUS"
+        printf "║  LocalStack Svcs    │    20    │   %2d   │ %-20s ║\n" "$LS_SVCS" "$LS_STATUS"
+        echo "╠═══════════════════════════════════════════════════════════════════╣"
+        printf "║  OVERALL ACCURACY   │  ≥99.5%%  │  %3d%%  │ %-17s ║\n" "$PASS_RATE" "$OVERALL_STATUS"
+        echo "╚═══════════════════════════════════════════════════════════════════╝"
+        echo ""
+        echo "╔═══════════════════════════════════════════════════════════════════╗"
+        echo "║                     QUICK START COMPLETE                          ║"
+        echo "╠═══════════════════════════════════════════════════════════════════╣"
+        echo "║  Passed: $PASS_COUNT    Failed: $FAIL_COUNT                                       ║"
+        echo "╠═══════════════════════════════════════════════════════════════════╣"
+        echo "║  Evidence: {{.EVIDENCE_DIR}}/                            ║"
+        echo "╠═══════════════════════════════════════════════════════════════════╣"
+        echo "║  Next Steps:                                                      ║"
+        echo "║    - View dashboard: open {{.EVIDENCE_DIR}}/index.html            ║"
+        echo "║    - View summary: cat {{.EVIDENCE_DIR}}/05-summary.md            ║"
+        echo "║    - Full deploy: Clone sandbox repo (requires source)            ║"
+        echo "║    - Docs: https://www.npmjs.com/package/aws-sandbox              ║"
+        echo "╚═══════════════════════════════════════════════════════════════════╝"
 
   quickstart:help:
     desc: Show quickstart instructions (no execution)

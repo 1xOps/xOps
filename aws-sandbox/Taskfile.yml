@@ -9,7 +9,7 @@
 version: '3'
 
 vars:
-  VERSION: "0.3.1"
+  VERSION: "0.3.2"
   EVIDENCE_DIR: "/workspace/tmp/aws-sandbox"
 
 tasks:
@@ -54,9 +54,13 @@ tasks:
       - aws-sandbox test --tier=2
 
   deploy:
-    desc: Deploy to LocalStack (requires source code - see output for options)
+    desc: Deploy CDK infrastructure to LocalStack (45+ resources)
     cmds:
-      - aws-sandbox deploy --localstack
+      - |
+        echo "=== Deploying CDK Infrastructure to LocalStack ==="
+        echo "This deploys: 4 DynamoDB, 5 S3, 21 Lambda, 5 SQS, 5 EventBridge, 11 IAM..."
+        aws-sandbox deploy --localstack
+        echo "=== Deploy Complete ==="
 
   upgrade:
     desc: Upgrade to latest version

@@ -1,6 +1,6 @@
 # 🚀 AWS Sandbox - Quick Start Guide
 
-> **npm**: [aws-sandbox](https://www.npmjs.com/package/aws-sandbox) v0.3.1 | **AWS Solution**: [Innovation Sandbox on AWS](https://aws.amazon.com/solutions/implementations/innovation-sandbox-on-aws/)
+> **npm**: [aws-sandbox](https://www.npmjs.com/package/aws-sandbox) v0.3.2 | **AWS Solution**: [Innovation Sandbox on AWS](https://aws.amazon.com/solutions/implementations/innovation-sandbox-on-aws/)
 
 ---
 
@@ -59,7 +59,7 @@ code .
 # → Click "Reopen in Container" when prompted
 
 # 3. Run tests (inside container)
-aws-sandbox --version        # v0.3.1
+aws-sandbox --version        # v0.3.2
 aws-sandbox test --tier=1    # 23 checks, 2-3s, $0
 aws-sandbox test --tier=2    # 24 checks, 30s, $0
 ```
@@ -88,7 +88,7 @@ task aws-sandbox:evidence:generate    # Generate all evidence + HTML reports
 npm install -g aws-sandbox --ignore-scripts
 
 # Verify
-aws-sandbox --version        # v0.3.1
+aws-sandbox --version        # v0.3.2
 
 # Run tests
 aws-sandbox test --tier=1    # Tier 1: Connectivity

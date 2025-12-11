@@ -9,7 +9,7 @@
 version: '3'
 
 vars:
-  VERSION: "0.3.3"
+  VERSION: "0.3.6"
   EVIDENCE_DIR: "/workspace/tmp/aws-sandbox"
 
 tasks:
@@ -259,7 +259,8 @@ tasks:
         LS_VERSION=$(echo "$HEALTH_JSON" | jq -r '.version // "unknown"' 2>/dev/null)
         LS_EDITION=$(echo "$HEALTH_JSON" | jq -r '.edition // "community"' 2>/dev/null)
 
-        # Query all 18 service categories for data
+        # Query all 18 service categories for data (CDK deploys to us-east-1)
+        export AWS_DEFAULT_REGION=us-east-1
         S3_BUCKETS=$(aws --endpoint-url=${ENDPOINT} s3 ls 2>/dev/null || echo "")
         DYNAMODB_TABLES=$(aws --endpoint-url=${ENDPOINT} dynamodb list-tables 2>/dev/null | jq -r '.TableNames[]' 2>/dev/null || echo "")
         LAMBDA_FUNCS=$(aws --endpoint-url=${ENDPOINT} lambda list-functions 2>/dev/null | jq -r '.Functions[].FunctionName' 2>/dev/null || echo "")

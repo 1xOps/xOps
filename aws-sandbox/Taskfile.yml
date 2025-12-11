@@ -9,7 +9,7 @@
 version: '3'
 
 vars:
-  VERSION: "0.3.2"
+  VERSION: "0.3.3"
   EVIDENCE_DIR: "/workspace/tmp/aws-sandbox"
 
 tasks:

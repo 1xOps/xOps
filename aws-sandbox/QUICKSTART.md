@@ -279,7 +279,7 @@ open /workspace/tmp/aws-sandbox/06-evidence-report.html
 | Property | Value |
 |----------|-------|
 | **npm** | [npmjs.com/package/aws-sandbox](https://www.npmjs.com/package/aws-sandbox) |
-| **Version** | 0.3.12 |
+| **Version** | 0.3.14 |
 | **License** | Apache-2.0 |
 | **GitHub** | [github.com/1xOps/sandbox](https://github.com/1xOps/sandbox) |
 | **Size** | ~1.3MB compressed / ~5.3MB unpacked |
@@ -363,4 +363,4 @@ brew install go-task/tap/go-task
 
 ---
 
-**Version**: 0.3.12 | **ADLC**: v1.2.0 | **Updated**: 2025-12-11 | **Status**: ✅ Consumer CDK Deploy
+**Version**: 0.3.14 | **ADLC**: v1.2.0 | **Updated**: 2025-12-12 | **Status**: ✅ Consumer Tier 1+2 Tests

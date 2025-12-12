@@ -8,7 +8,7 @@
 version: '3'
 
 vars:
-  VERSION: "0.3.6"
+  VERSION: "0.3.12"
   EVIDENCE_DIR: "/workspace/tmp/aws-sandbox"
 
 includes:

@@ -8,7 +8,7 @@
 version: '3'
 
 vars:
-  VERSION: "0.3.12"
+  VERSION: "0.3.17"
   EVIDENCE_DIR: "/workspace/tmp/aws-sandbox"
 
 includes:
@@ -102,10 +102,26 @@ tasks:
         # Summary with Cross-Validation Matrix (DYNAMIC - reads actual results)
         echo ""
 
-        # Read actual results from evidence files (POSIX-compatible grep)
-        T1_ACTUAL=$(grep -o '[0-9]*/23' "{{.EVIDENCE_DIR}}/02-tier1-check.txt" 2>/dev/null | head -1 | cut -d'/' -f1)
+        # Read actual results from evidence files (JSON primary, text fallback - ADLC compliance)
+        # Phase 1: Try JSON evidence files (written by aws-sandbox CLI v0.3.16+)
+        T1_ACTUAL=""
+        if [ -f "{{.EVIDENCE_DIR}}/tier1-results.json" ]; then
+          T1_ACTUAL=$(jq -r '.passed // empty' "{{.EVIDENCE_DIR}}/tier1-results.json" 2>/dev/null)
+        fi
+        # Phase 2: Fallback to text marker in evidence log
+        if [ -z "$T1_ACTUAL" ] || [ "$T1_ACTUAL" = "null" ]; then
+          T1_ACTUAL=$(grep -oE 'TIER1_RESULT: [0-9]+' "{{.EVIDENCE_DIR}}/02-tier1-check.txt" 2>/dev/null | sed 's/.*: //' | head -1)
+        fi
         T1_ACTUAL=${T1_ACTUAL:-0}
-        T2_ACTUAL=$(grep -o '[0-9]*/24' "{{.EVIDENCE_DIR}}/03-tier2-check.txt" 2>/dev/null | head -1 | cut -d'/' -f1)
+
+        # Tier 2: Same pattern (JSON primary, text fallback)
+        T2_ACTUAL=""
+        if [ -f "{{.EVIDENCE_DIR}}/tier2-results.json" ]; then
+          T2_ACTUAL=$(jq -r '.passed // empty' "{{.EVIDENCE_DIR}}/tier2-results.json" 2>/dev/null)
+        fi
+        if [ -z "$T2_ACTUAL" ] || [ "$T2_ACTUAL" = "null" ]; then
+          T2_ACTUAL=$(grep -oE 'TIER2_RESULT: [0-9]+' "{{.EVIDENCE_DIR}}/03-tier2-check.txt" 2>/dev/null | sed 's/.*: //' | head -1)
+        fi
         T2_ACTUAL=${T2_ACTUAL:-0}
 
         # Query LocalStack live for service count

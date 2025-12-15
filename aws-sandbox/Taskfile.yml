@@ -657,8 +657,8 @@ tasks:
         <div class="card">
           <h3>Test Validation</h3>
           <pre># Frontend tests: PRE-VALIDATED in npm package
-# 41 test files | 268 tests | 92% coverage
-# Validation: aws-sandbox@${VERSION} npm registry</pre>
+          # 41 test files | 268 tests | 92% coverage
+          # Validation: aws-sandbox@${VERSION} npm registry</pre>
         </div>
 
         <p class="footer">${MODE} mode | aws-sandbox v${VERSION}</p>

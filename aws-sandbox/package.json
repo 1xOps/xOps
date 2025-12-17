@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "aws-sandbox": "^0.3.18"
+  }
+}

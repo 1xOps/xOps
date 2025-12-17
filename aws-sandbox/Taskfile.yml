@@ -817,8 +817,8 @@ tasks:
           <li><a href="05-summary.md">05-summary.md</a> <span><span class="desc">Summary report</span> <span class="badge badge-md">MD</span></span></li>
           <li><a href="06-evidence-report.html">06-evidence-report.html</a> <span><span class="desc">Infrastructure evidence</span> <span class="badge badge-html">HTML</span></span></li>
           <li><a href="07-frontend-tests.html">07-frontend-tests.html</a> <span><span class="desc">Frontend test results</span> <span class="badge badge-html">HTML</span></span></li>
-          <li><a href="08-cdk-resources-summary.html">08-cdk-resources-summary.html</a> <span><span class="desc">63-Resource breakdown</span> <span class="badge badge-html">HTML</span></span></li>
-          <li><a href="resource-counts.json">resource-counts.json</a> <span><span class="desc">Dynamic CFN counts</span> <span class="badge badge-json">JSON</span></span></li>
+          <li><a href="08-cdk-resources-summary.html">08-cdk-resources-summary.html</a> <span><span class="desc">CDK Resource breakdown (5 stacks)</span> <span class="badge badge-html">HTML</span></span></li>
+          <li><a href="resource-counts.json">resource-counts.json</a> <span><span class="desc">Dynamic CFN counts (329 resources)</span> <span class="badge badge-json">JSON</span></span></li>
         </ul>
 
         <h2>Test Coverage</h2>
@@ -1120,7 +1120,7 @@ tasks:
   # ========================================
 
   evidence:count-resources:
-    desc: Count CDK resources dynamically from CloudFormation templates
+    desc: Count CDK resources dynamically from CloudFormation templates (ALL 5 stacks)
     cmds:
       - |
         EVIDENCE_DIR="{{.EVIDENCE_DIR}}"
@@ -1137,25 +1137,25 @@ tasks:
         fi
 
         if [ -z "$CDK_OUT" ] || [ ! -d "$CDK_OUT" ]; then
-          echo "Warning: cdk.out not found, using static resource counts"
-          # Write static counts as fallback
+          echo "Warning: cdk.out not found, using static resource counts (based on v0.3.18 actual templates)"
+          # Static fallback with ACCURATE counts from actual CFN templates (verified 2025-12-15)
+          # Data=19, Compute=258, IDC=18, AccountPool=32, SandboxAccount=2 = 329 total
           TS=$(date -Iseconds)
           cat > "${EVIDENCE_DIR}/resource-counts.json" << JSONEOF
         {
-          "source": "static",
+          "source": "static-verified",
           "timestamp": "${TS}",
+          "note": "Static counts verified against aws-sandbox@0.3.18 CFN templates (2025-12-15)",
           "stacks": {
-            "Data": {"total": 28, "types": {"Lambda": 12, "DynamoDB": 4, "S3": 3, "SQS": 3, "Events": 3, "IAM": 8, "KMS": 2, "Logs": 2}},
-            "Compute": {"total": 35, "types": {"Lambda": 9, "ApiGateway": 1, "StepFunctions": 1, "S3": 2, "SQS": 2, "Events": 2, "IAM": 3, "Secrets": 1, "Logs": 1, "CodeBuild": 1, "CloudFront": 1, "WAFv2": 3}}
+            "Data": {"total": 19},
+            "Compute": {"total": 258},
+            "IDC": {"total": 18},
+            "AccountPool": {"total": 32},
+            "SandboxAccount": {"total": 2}
           },
-          "totals": {
-            "Lambda": 21, "S3": 5, "DynamoDB": 4, "SQS": 5, "Events": 5,
-            "IAM": 11, "KMS": 2, "Secrets": 1, "ApiGateway": 1, "StepFunctions": 1,
-            "Logs": 3, "CodeBuild": 1, "CloudFront": 1, "WAFv2": 3
-          },
-          "grandTotal": 63,
-          "localstackDeployable": 45,
-          "awsOnly": 18
+          "grandTotal": 329,
+          "localstackDeployable": 277,
+          "awsOnly": 52
         }
         JSONEOF
           exit 0
@@ -1163,49 +1163,56 @@ tasks:
 
         echo "Parsing CloudFormation templates from: $CDK_OUT"
 
-        # Parse each template and count resources by type
+        # ALL 5 stack templates
         DATA_TEMPLATE="$CDK_OUT/InnovationSandbox-Data.template.json"
         COMPUTE_TEMPLATE="$CDK_OUT/InnovationSandbox-Compute.template.json"
+        IDC_TEMPLATE="$CDK_OUT/InnovationSandbox-IDC.template.json"
+        ACCOUNTPOOL_TEMPLATE="$CDK_OUT/InnovationSandbox-AccountPool.template.json"
+        SANDBOX_TEMPLATE="$CDK_OUT/InnovationSandbox-SandboxAccount.template.json"
 
-        # Initialize counters
-        LAMBDA=0; S3=0; DYNAMODB=0; SQS=0; EVENTS=0; IAM=0; KMS=0; SECRETS=0
-        APIGW=0; STEPFN=0; LOGS=0; CODEBUILD=0; CLOUDFRONT=0; WAF=0
+        # Count TOTAL resources per stack (not just specific types)
+        DATA_COUNT=0; COMPUTE_COUNT=0; IDC_COUNT=0; ACCOUNTPOOL_COUNT=0; SANDBOX_COUNT=0
 
-        # Count from Data stack
         if [ -f "$DATA_TEMPLATE" ]; then
-          LAMBDA=$((LAMBDA + $(jq '[.Resources[] | select(.Type | startswith("AWS::Lambda::Function"))] | length' "$DATA_TEMPLATE" 2>/dev/null || echo 0)))
-          S3=$((S3 + $(jq '[.Resources[] | select(.Type == "AWS::S3::Bucket")] | length' "$DATA_TEMPLATE" 2>/dev/null || echo 0)))
-          DYNAMODB=$((DYNAMODB + $(jq '[.Resources[] | select(.Type == "AWS::DynamoDB::Table")] | length' "$DATA_TEMPLATE" 2>/dev/null || echo 0)))
-          SQS=$((SQS + $(jq '[.Resources[] | select(.Type == "AWS::SQS::Queue")] | length' "$DATA_TEMPLATE" 2>/dev/null || echo 0)))
-          EVENTS=$((EVENTS + $(jq '[.Resources[] | select(.Type | startswith("AWS::Events::"))] | length' "$DATA_TEMPLATE" 2>/dev/null || echo 0)))
-          IAM=$((IAM + $(jq '[.Resources[] | select(.Type | startswith("AWS::IAM::Role"))] | length' "$DATA_TEMPLATE" 2>/dev/null || echo 0)))
-          KMS=$((KMS + $(jq '[.Resources[] | select(.Type == "AWS::KMS::Key")] | length' "$DATA_TEMPLATE" 2>/dev/null || echo 0)))
-          SECRETS=$((SECRETS + $(jq '[.Resources[] | select(.Type == "AWS::SecretsManager::Secret")] | length' "$DATA_TEMPLATE" 2>/dev/null || echo 0)))
-          LOGS=$((LOGS + $(jq '[.Resources[] | select(.Type == "AWS::Logs::LogGroup")] | length' "$DATA_TEMPLATE" 2>/dev/null || echo 0)))
-          echo "  Data stack parsed: Lambda=$LAMBDA, S3=$S3, DynamoDB=$DYNAMODB, SQS=$SQS"
+          DATA_COUNT=$(jq '.Resources | length' "$DATA_TEMPLATE" 2>/dev/null || echo 0)
+          echo "  Data stack: $DATA_COUNT resources"
         fi
 
-        # Count from Compute stack
         if [ -f "$COMPUTE_TEMPLATE" ]; then
-          LAMBDA=$((LAMBDA + $(jq '[.Resources[] | select(.Type | startswith("AWS::Lambda::Function"))] | length' "$COMPUTE_TEMPLATE" 2>/dev/null || echo 0)))
-          S3=$((S3 + $(jq '[.Resources[] | select(.Type == "AWS::S3::Bucket")] | length' "$COMPUTE_TEMPLATE" 2>/dev/null || echo 0)))
-          SQS=$((SQS + $(jq '[.Resources[] | select(.Type == "AWS::SQS::Queue")] | length' "$COMPUTE_TEMPLATE" 2>/dev/null || echo 0)))
-          EVENTS=$((EVENTS + $(jq '[.Resources[] | select(.Type | startswith("AWS::Events::"))] | length' "$COMPUTE_TEMPLATE" 2>/dev/null || echo 0)))
-          IAM=$((IAM + $(jq '[.Resources[] | select(.Type | startswith("AWS::IAM::Role"))] | length' "$COMPUTE_TEMPLATE" 2>/dev/null || echo 0)))
-          APIGW=$((APIGW + $(jq '[.Resources[] | select(.Type | startswith("AWS::ApiGateway"))] | length' "$COMPUTE_TEMPLATE" 2>/dev/null || echo 0)))
-          STEPFN=$((STEPFN + $(jq '[.Resources[] | select(.Type == "AWS::StepFunctions::StateMachine")] | length' "$COMPUTE_TEMPLATE" 2>/dev/null || echo 0)))
-          LOGS=$((LOGS + $(jq '[.Resources[] | select(.Type == "AWS::Logs::LogGroup")] | length' "$COMPUTE_TEMPLATE" 2>/dev/null || echo 0)))
-          CODEBUILD=$((CODEBUILD + $(jq '[.Resources[] | select(.Type == "AWS::CodeBuild::Project")] | length' "$COMPUTE_TEMPLATE" 2>/dev/null || echo 0)))
-          CLOUDFRONT=$((CLOUDFRONT + $(jq '[.Resources[] | select(.Type == "AWS::CloudFront::Distribution")] | length' "$COMPUTE_TEMPLATE" 2>/dev/null || echo 0)))
-          WAF=$((WAF + $(jq '[.Resources[] | select(.Type | startswith("AWS::WAFv2::"))] | length' "$COMPUTE_TEMPLATE" 2>/dev/null || echo 0)))
-          SECRETS=$((SECRETS + $(jq '[.Resources[] | select(.Type == "AWS::SecretsManager::Secret")] | length' "$COMPUTE_TEMPLATE" 2>/dev/null || echo 0)))
-          echo "  Compute stack parsed: Lambda=$LAMBDA, ApiGW=$APIGW, StepFn=$STEPFN"
+          COMPUTE_COUNT=$(jq '.Resources | length' "$COMPUTE_TEMPLATE" 2>/dev/null || echo 0)
+          echo "  Compute stack: $COMPUTE_COUNT resources"
         fi
 
-        # Calculate totals
-        LOCALSTACK_DEPLOYABLE=$((LAMBDA + S3 + DYNAMODB + SQS + EVENTS + IAM + KMS + SECRETS + APIGW + STEPFN + LOGS))
-        AWS_ONLY=$((CODEBUILD + CLOUDFRONT + WAF))
-        GRAND_TOTAL=$((LOCALSTACK_DEPLOYABLE + AWS_ONLY))
+        if [ -f "$IDC_TEMPLATE" ]; then
+          IDC_COUNT=$(jq '.Resources | length' "$IDC_TEMPLATE" 2>/dev/null || echo 0)
+          echo "  IDC stack: $IDC_COUNT resources"
+        fi
+
+        if [ -f "$ACCOUNTPOOL_TEMPLATE" ]; then
+          ACCOUNTPOOL_COUNT=$(jq '.Resources | length' "$ACCOUNTPOOL_TEMPLATE" 2>/dev/null || echo 0)
+          echo "  AccountPool stack: $ACCOUNTPOOL_COUNT resources"
+        fi
+
+        if [ -f "$SANDBOX_TEMPLATE" ]; then
+          SANDBOX_COUNT=$(jq '.Resources | length' "$SANDBOX_TEMPLATE" 2>/dev/null || echo 0)
+          echo "  SandboxAccount stack: $SANDBOX_COUNT resources"
+        fi
+
+        GRAND_TOTAL=$((DATA_COUNT + COMPUTE_COUNT + IDC_COUNT + ACCOUNTPOOL_COUNT + SANDBOX_COUNT))
+
+        # Count AWS-only resources (Organizations, IAM Identity Center, CloudFront, WAFv2, CodeBuild)
+        AWS_ONLY=0
+        for TEMPLATE in "$DATA_TEMPLATE" "$COMPUTE_TEMPLATE" "$IDC_TEMPLATE" "$ACCOUNTPOOL_TEMPLATE" "$SANDBOX_TEMPLATE"; do
+          if [ -f "$TEMPLATE" ]; then
+            AWS_ONLY=$((AWS_ONLY + $(jq '[.Resources[] | select(.Type | startswith("AWS::Organizations::"))] | length' "$TEMPLATE" 2>/dev/null || echo 0)))
+            AWS_ONLY=$((AWS_ONLY + $(jq '[.Resources[] | select(.Type | startswith("AWS::SSO::"))] | length' "$TEMPLATE" 2>/dev/null || echo 0)))
+            AWS_ONLY=$((AWS_ONLY + $(jq '[.Resources[] | select(.Type | startswith("AWS::CloudFront::"))] | length' "$TEMPLATE" 2>/dev/null || echo 0)))
+            AWS_ONLY=$((AWS_ONLY + $(jq '[.Resources[] | select(.Type | startswith("AWS::WAFv2::"))] | length' "$TEMPLATE" 2>/dev/null || echo 0)))
+            AWS_ONLY=$((AWS_ONLY + $(jq '[.Resources[] | select(.Type | startswith("AWS::CodeBuild::"))] | length' "$TEMPLATE" 2>/dev/null || echo 0)))
+          fi
+        done
+
+        LOCALSTACK_DEPLOYABLE=$((GRAND_TOTAL - AWS_ONLY))
 
         # Write JSON output
         cat > "${EVIDENCE_DIR}/resource-counts.json" << JSONEOF
@@ -1213,21 +1220,12 @@ tasks:
           "source": "dynamic",
           "timestamp": "$(date -Iseconds)",
           "cdkOutPath": "$CDK_OUT",
-          "totals": {
-            "Lambda": $LAMBDA,
-            "S3": $S3,
-            "DynamoDB": $DYNAMODB,
-            "SQS": $SQS,
-            "Events": $EVENTS,
-            "IAM": $IAM,
-            "KMS": $KMS,
-            "Secrets": $SECRETS,
-            "ApiGateway": $APIGW,
-            "StepFunctions": $STEPFN,
-            "Logs": $LOGS,
-            "CodeBuild": $CODEBUILD,
-            "CloudFront": $CLOUDFRONT,
-            "WAFv2": $WAF
+          "stacks": {
+            "Data": {"total": $DATA_COUNT},
+            "Compute": {"total": $COMPUTE_COUNT},
+            "IDC": {"total": $IDC_COUNT},
+            "AccountPool": {"total": $ACCOUNTPOOL_COUNT},
+            "SandboxAccount": {"total": $SANDBOX_COUNT}
           },
           "grandTotal": $GRAND_TOTAL,
           "localstackDeployable": $LOCALSTACK_DEPLOYABLE,
@@ -1239,7 +1237,7 @@ tasks:
         echo "Total resources: $GRAND_TOTAL (LocalStack: $LOCALSTACK_DEPLOYABLE, AWS-only: $AWS_ONLY)"
 
   evidence:html:resources:
-    desc: Generate 08-cdk-resources-summary.html with detailed breakdown
+    desc: Generate 08-cdk-resources-summary.html with detailed breakdown (ALL 5 stacks)
     deps: [evidence:count-resources]
     cmds:
       - |
@@ -1247,36 +1245,26 @@ tasks:
         TIMESTAMP=$(date -Iseconds)
         VERSION="{{.VERSION}}"
 
-        # Read counts from resource-counts.json
+        # Read counts from resource-counts.json (new format with per-stack totals)
         COUNTS_FILE="${EVIDENCE_DIR}/resource-counts.json"
         if [ -f "$COUNTS_FILE" ]; then
-          LAMBDA=$(jq '.totals.Lambda // 21' "$COUNTS_FILE")
-          S3=$(jq '.totals.S3 // 5' "$COUNTS_FILE")
-          DYNAMODB=$(jq '.totals.DynamoDB // 4' "$COUNTS_FILE")
-          SQS=$(jq '.totals.SQS // 5' "$COUNTS_FILE")
-          EVENTS=$(jq '.totals.Events // 5' "$COUNTS_FILE")
-          IAM=$(jq '.totals.IAM // 11' "$COUNTS_FILE")
-          KMS=$(jq '.totals.KMS // 2' "$COUNTS_FILE")
-          SECRETS=$(jq '.totals.Secrets // 1' "$COUNTS_FILE")
-          APIGW=$(jq '.totals.ApiGateway // 1' "$COUNTS_FILE")
-          STEPFN=$(jq '.totals.StepFunctions // 1' "$COUNTS_FILE")
-          LOGS=$(jq '.totals.Logs // 3' "$COUNTS_FILE")
-          CODEBUILD=$(jq '.totals.CodeBuild // 1' "$COUNTS_FILE")
-          CLOUDFRONT=$(jq '.totals.CloudFront // 1' "$COUNTS_FILE")
-          WAF=$(jq '.totals.WAFv2 // 3' "$COUNTS_FILE")
-          GRAND_TOTAL=$(jq '.grandTotal // 63' "$COUNTS_FILE")
-          LS_TOTAL=$(jq '.localstackDeployable // 45' "$COUNTS_FILE")
-          AWS_ONLY=$(jq '.awsOnly // 18' "$COUNTS_FILE")
-          SOURCE=$(jq -r '.source // "static"' "$COUNTS_FILE")
+          # Stack totals (new format)
+          DATA_TOTAL=$(jq '.stacks.Data.total // 19' "$COUNTS_FILE")
+          COMPUTE_TOTAL=$(jq '.stacks.Compute.total // 258' "$COUNTS_FILE")
+          IDC_TOTAL=$(jq '.stacks.IDC.total // 18' "$COUNTS_FILE")
+          ACCOUNTPOOL_TOTAL=$(jq '.stacks.AccountPool.total // 32' "$COUNTS_FILE")
+          SANDBOX_TOTAL=$(jq '.stacks.SandboxAccount.total // 2' "$COUNTS_FILE")
+          GRAND_TOTAL=$(jq '.grandTotal // 329' "$COUNTS_FILE")
+          LS_TOTAL=$(jq '.localstackDeployable // 277' "$COUNTS_FILE")
+          AWS_ONLY=$(jq '.awsOnly // 52' "$COUNTS_FILE")
+          SOURCE=$(jq -r '.source // "static-verified"' "$COUNTS_FILE")
         else
-          # Fallback to static values
-          LAMBDA=21; S3=5; DYNAMODB=4; SQS=5; EVENTS=5; IAM=11
-          KMS=2; SECRETS=1; APIGW=1; STEPFN=1; LOGS=3
-          CODEBUILD=1; CLOUDFRONT=1; WAF=3
-          GRAND_TOTAL=63; LS_TOTAL=45; AWS_ONLY=18; SOURCE="static"
+          # Fallback to verified static values (aws-sandbox@0.3.18)
+          DATA_TOTAL=19; COMPUTE_TOTAL=258; IDC_TOTAL=18
+          ACCOUNTPOOL_TOTAL=32; SANDBOX_TOTAL=2
+          GRAND_TOTAL=329; LS_TOTAL=277; AWS_ONLY=52; SOURCE="static-verified"
         fi
 
-        KMS_SECRETS=$((KMS + SECRETS))
         LS_PCT=$((LS_TOTAL * 100 / GRAND_TOTAL))
 
         cat > "${EVIDENCE_DIR}/08-cdk-resources-summary.html" << HTMLEOF
@@ -1323,143 +1311,63 @@ tasks:
           </div>
         </div>
 
-        <h2>Resource Breakdown by Category</h2>
+        <h2>Resource Breakdown by Stack</h2>
         <table>
           <tr>
-            <th>Category</th>
+            <th>Stack</th>
             <th>Icon</th>
-            <th>Count</th>
+            <th>Resources</th>
             <th>LocalStack</th>
             <th>AWS</th>
-            <th>Notes</th>
+            <th>Description</th>
           </tr>
           <tr class="deployable">
-            <td>Lambda Functions</td>
-            <td>🔧</td>
-            <td>${LAMBDA}</td>
-            <td style="color: #00ff88;">✅ ${LAMBDA}</td>
-            <td style="color: #00ff88;">✅ ${LAMBDA}</td>
-            <td>Full support in Community Edition</td>
-          </tr>
-          <tr class="deployable">
-            <td>S3 Buckets</td>
-            <td>📁</td>
-            <td>${S3}</td>
-            <td style="color: #00ff88;">✅ ${S3}</td>
-            <td style="color: #00ff88;">✅ ${S3}</td>
-            <td>Full support in Community Edition</td>
-          </tr>
-          <tr class="deployable">
-            <td>DynamoDB Tables</td>
+            <td>InnovationSandbox-Data</td>
             <td>🗄️</td>
-            <td>${DYNAMODB}</td>
-            <td style="color: #00ff88;">✅ ${DYNAMODB}</td>
-            <td style="color: #00ff88;">✅ ${DYNAMODB}</td>
-            <td>Full support in Community Edition</td>
+            <td>${DATA_TOTAL}</td>
+            <td style="color: #00ff88;">✅ ${DATA_TOTAL}</td>
+            <td style="color: #00ff88;">✅ ${DATA_TOTAL}</td>
+            <td>DynamoDB, S3, Lambda, SQS, EventBridge</td>
           </tr>
           <tr class="deployable">
-            <td>SQS Queues</td>
-            <td>📬</td>
-            <td>${SQS}</td>
-            <td style="color: #00ff88;">✅ ${SQS}</td>
-            <td style="color: #00ff88;">✅ ${SQS}</td>
-            <td>Full support in Community Edition</td>
-          </tr>
-          <tr class="deployable">
-            <td>EventBridge Rules</td>
-            <td>📢</td>
-            <td>${EVENTS}</td>
-            <td style="color: #00ff88;">✅ ${EVENTS}</td>
-            <td style="color: #00ff88;">✅ ${EVENTS}</td>
-            <td>Full support in Community Edition</td>
-          </tr>
-          <tr class="deployable">
-            <td>IAM Roles</td>
-            <td>👔</td>
-            <td>${IAM}</td>
-            <td style="color: #00ff88;">✅ ${IAM}</td>
-            <td style="color: #00ff88;">✅ ${IAM}</td>
-            <td>Full support in Community Edition</td>
-          </tr>
-          <tr class="deployable">
-            <td>KMS + Secrets Manager</td>
-            <td>🔐</td>
-            <td>${KMS_SECRETS}</td>
-            <td style="color: #00ff88;">✅ ${KMS_SECRETS}</td>
-            <td style="color: #00ff88;">✅ ${KMS_SECRETS}</td>
-            <td>Full support in Community Edition</td>
-          </tr>
-          <tr class="deployable">
-            <td>API Gateway</td>
-            <td>🌐</td>
-            <td>${APIGW}</td>
-            <td style="color: #00ff88;">✅ ${APIGW}</td>
-            <td style="color: #00ff88;">✅ ${APIGW}</td>
-            <td>REST API support in Community Edition</td>
-          </tr>
-          <tr class="deployable">
-            <td>Step Functions</td>
+            <td>InnovationSandbox-Compute</td>
             <td>⚙️</td>
-            <td>${STEPFN}</td>
-            <td style="color: #00ff88;">✅ ${STEPFN}</td>
-            <td style="color: #00ff88;">✅ ${STEPFN}</td>
-            <td>Full support in Community Edition</td>
-          </tr>
-          <tr class="deployable">
-            <td>CloudWatch Logs</td>
-            <td>📋</td>
-            <td>${LOGS}+</td>
-            <td style="color: #00ff88;">✅ ${LOGS}+</td>
-            <td style="color: #00ff88;">✅ ${LOGS}+</td>
-            <td>Full support in Community Edition</td>
+            <td>${COMPUTE_TOTAL}</td>
+            <td style="color: #00d4ff;">~85%</td>
+            <td style="color: #00ff88;">✅ ${COMPUTE_TOTAL}</td>
+            <td>API Gateway, Lambda, Step Functions, CloudFront, WAF</td>
           </tr>
           <tr class="aws-only">
-            <td>CodeBuild</td>
-            <td>🔨</td>
-            <td>${CODEBUILD}</td>
-            <td style="color: #ff6b6b;">❌ 0</td>
-            <td style="color: #00ff88;">✅ ${CODEBUILD}</td>
-            <td>Requires LocalStack Pro (Base tier)</td>
-          </tr>
-          <tr class="aws-only">
-            <td>CloudFront</td>
-            <td>🌍</td>
-            <td>${CLOUDFRONT}</td>
-            <td style="color: #ff6b6b;">❌ 0</td>
-            <td style="color: #00ff88;">✅ ${CLOUDFRONT}</td>
-            <td>Requires LocalStack Pro (Ultimate tier)</td>
-          </tr>
-          <tr class="aws-only">
-            <td>WAFv2</td>
-            <td>🛡️</td>
-            <td>${WAF}</td>
-            <td style="color: #ff6b6b;">❌ 0</td>
-            <td style="color: #00ff88;">✅ ${WAF}</td>
-            <td>Requires LocalStack Pro (Ultimate tier)</td>
-          </tr>
-          <tr class="aws-only">
-            <td>Organizations</td>
-            <td>🏛️</td>
-            <td>8+</td>
-            <td style="color: #ff6b6b;">❌ 0</td>
-            <td style="color: #00ff88;">✅ 8+</td>
-            <td>AccountPool + IDC stacks (AWS only)</td>
-          </tr>
-          <tr class="aws-only">
-            <td>IAM Identity Center</td>
+            <td>InnovationSandbox-IDC</td>
             <td>🔐</td>
-            <td>5+</td>
+            <td>${IDC_TOTAL}</td>
             <td style="color: #ff6b6b;">❌ 0</td>
-            <td style="color: #00ff88;">✅ 5+</td>
-            <td>IDC stack (AWS only)</td>
+            <td style="color: #00ff88;">✅ ${IDC_TOTAL}</td>
+            <td>IAM Identity Center (AWS Organizations required)</td>
+          </tr>
+          <tr class="aws-only">
+            <td>InnovationSandbox-AccountPool</td>
+            <td>🏛️</td>
+            <td>${ACCOUNTPOOL_TOTAL}</td>
+            <td style="color: #ff6b6b;">❌ 0</td>
+            <td style="color: #00ff88;">✅ ${ACCOUNTPOOL_TOTAL}</td>
+            <td>AWS Organizations account management</td>
+          </tr>
+          <tr class="aws-only">
+            <td>InnovationSandbox-SandboxAccount</td>
+            <td>📦</td>
+            <td>${SANDBOX_TOTAL}</td>
+            <td style="color: #ff6b6b;">❌ 0</td>
+            <td style="color: #00ff88;">✅ ${SANDBOX_TOTAL}</td>
+            <td>Cross-account sandbox setup</td>
           </tr>
           <tr style="background: rgba(0,212,255,0.1); font-weight: bold;">
-            <td>TOTAL</td>
+            <td>TOTAL (5 stacks)</td>
             <td></td>
-            <td>${GRAND_TOTAL}+</td>
+            <td>${GRAND_TOTAL}</td>
             <td style="color: #00d4ff;">${LS_TOTAL} (${LS_PCT}%)</td>
-            <td style="color: #00ff88;">${GRAND_TOTAL}+ (100%)</td>
-            <td></td>
+            <td style="color: #00ff88;">${GRAND_TOTAL} (100%)</td>
+            <td>Dynamic count from CFN templates</td>
           </tr>
         </table>
 

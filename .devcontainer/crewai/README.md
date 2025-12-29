@@ -245,7 +245,34 @@ python main.py
 
 ---
 
+## 🛠️ Query Installed Tools
+
+```bash
+# List all packages
+pip list
+
+# Search AI packages
+pip list | grep -iE 'crew|openai|anthropic'
+
+# Show package details
+pip show crewai
+```
+
+---
+
 ## 🔍 Troubleshooting
+
+### Issue: "`ll` command not found"
+
+**Solution**: The base image doesn't include the `ll` alias by default. Use `ls -la` instead.
+
+Or add it yourself once:
+```bash
+echo "alias ll='ls -la'" >> ~/.bashrc
+source ~/.bashrc
+```
+
+---
 
 ### Issue: "No pyproject.toml found"
 

@@ -3,10 +3,8 @@
   "image": "docker.io/nnthanh101/runbooks:ai",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 
-  "onCreateCommand": "echo '✅ Python:' $(python --version 2>&1 | grep -oE '[0-9]+\\.[0-9]+\\.[0-9]+') '| UV:' $(uv --version 2>/dev/null | grep -oE '[0-9]+\\.[0-9]+\\.[0-9]+' || echo 'N/A') '| CrewAI:' $(python -c 'import crewai; print(crewai.__version__)' 2>/dev/null || echo '1.7.2')",
-  "postCreateCommand": "if [ -f pyproject.toml ]; then uv sync --all-extras && echo '✅ Dependencies installed'; else echo '⚠️  No pyproject.toml found - skipping uv sync (external DevContainer template)'; fi",
-  "postStartCommand": "echo '✅ CrewAI DevContainer ready'",
   "postAttachCommand": "bash --login",
+  "postStartCommand": "task -d ~",
 
   "mounts": [
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.aws,target=/home/os/.aws,type=bind,consistency=cached,readonly",

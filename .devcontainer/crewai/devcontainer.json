@@ -1,0 +1,84 @@
+{
+  "name": "CrewAI Development - Enterprise",
+  "image": "docker.io/nnthanh101/runbooks:ai",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+
+  "onCreateCommand": "echo '✅ Python:' $(python --version 2>&1 | grep -oE '[0-9]+\\.[0-9]+\\.[0-9]+') '| UV:' $(uv --version 2>/dev/null | grep -oE '[0-9]+\\.[0-9]+\\.[0-9]+' || echo 'N/A') '| CrewAI:' $(python -c 'import crewai; print(crewai.__version__)' 2>/dev/null || echo 'installing...')",
+  "postCreateCommand": "uv sync --all-extras && echo '✅ Dependencies installed'",
+  "postStartCommand": "echo '✅ CrewAI DevContainer ready - Run task help for commands'",
+  "postAttachCommand": "bash --login",
+
+  "mounts": [
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.aws,target=/home/os/.aws,type=bind,consistency=cached,readonly",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.config/crewai,target=/home/os/.config/crewai,type=bind,consistency=cached"
+  ],
+
+  "forwardPorts": [8501, 8000, 8888],
+  "portsAttributes": {
+    "8501": {
+      "label": "Streamlit UI",
+      "requireLocalPort": true,
+      "onAutoForward": "notify"
+    },
+    "8000": {
+      "label": "FastAPI/MkDocs",
+      "requireLocalPort": true,
+      "onAutoForward": "notify"
+    },
+    "8888": {
+      "label": "JupyterLab",
+      "requireLocalPort": true,
+      "onAutoForward": "notify"
+    }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "ms-toolsai.jupyter",
+        "AmazonWebServices.aws-toolkit-vscode",
+        "task.vscode-task",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "/bin/bash",
+            "args": ["--login"]
+          }
+        },
+        "dev.containers.showLogsTerminal": "never",
+        "python.defaultInterpreterPath": "/usr/bin/python3",
+        "python.linting.enabled": true,
+        "python.linting.ruffEnabled": true,
+        "python.formatting.provider": "none",
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+          }
+        },
+        "files.autoSave": "afterDelay",
+        "files.autoSaveDelay": 1000
+      }
+    }
+  },
+
+  "remoteEnv": {
+    "PYTHONPATH": "${containerWorkspaceFolder}/src",
+    "STORAGE_DIR": "${containerWorkspaceFolder}/storage",
+    "OUTPUT_DIR": "${containerWorkspaceFolder}/output",
+    "CREWAI_STORAGE_DIR": "${containerWorkspaceFolder}/storage",
+    "CREWAI_TELEMETRY_OPT_OUT": "true",
+    "TERM": "xterm-256color",
+    "STARSHIP_CONFIG": "/home/os/.config/starship.toml",
+    "COLORTERM": "truecolor"
+  },
+
+  "remoteUser": "os"
+}

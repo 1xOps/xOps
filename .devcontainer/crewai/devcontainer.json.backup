@@ -1,0 +1,41 @@
+{
+  "name": "CrewAI Development",
+  "image": "docker.io/nnthanh101/runbooks:ai",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+
+  "postCreateCommand": "uv sync --all-extras && echo '✅ Dependencies installed'",
+
+  "forwardPorts": [8501, 8000, 8888],
+
+  "remoteEnv": {
+    "PYTHONPATH": "${containerWorkspaceFolder}/src",
+    "STORAGE_DIR": "${containerWorkspaceFolder}/storage",
+    "OUTPUT_DIR": "${containerWorkspaceFolder}/output"
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "ms-toolsai.jupyter"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/bin/python3",
+        "python.linting.enabled": true,
+        "python.linting.ruffEnabled": true,
+        "python.formatting.provider": "none",
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+          }
+        }
+      }
+    }
+  },
+
+  "remoteUser": "os"
+}

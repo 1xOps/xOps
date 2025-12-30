@@ -1,0 +1,56 @@
+{
+  "name": "DevOps-Terraform",
+  "image": "docker.io/nnthanh101/terraform:latest",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+  "workspaceFolder": "/workspace",
+
+  // "initializeCommand": "mkdir -p ${HOME:-$USERPROFILE}/.aws",
+  "onCreateCommand": "echo '✅ Terraform:' $(terraform version -json 2>/dev/null | jq -r '.terraform_version' 2>/dev/null || terraform version | head -1 | grep -oE '[0-9]+\\.[0-9]+\\.[0-9]+') '| Task:' $(task --version 2>/dev/null | grep -oE '[0-9]+\\.[0-9]+\\.[0-9]+' || echo 'N/A')",
+  "updateContentCommand": "true",
+  "postCreateCommand": "[ -f /home/os/.aws/credentials ] && aws sts get-caller-identity --output text 2>/dev/null && echo '✅ AWS credentials configured' || echo '⚠️  No AWS credentials - run: aws configure'",
+  "postStartCommand": "task -d ~ 2>/dev/null || true",
+  "postAttachCommand": "bash --login",
+
+  // Mount AWS credentials (macOS/Linux)
+  "mounts": [
+    "source=${localEnv:HOME}/.aws,target=/home/os/.aws,type=bind,consistency=cached"
+  ],
+  "forwardPorts": [3000, 5000, 8080],
+  "portsAttributes": {
+    "3000": { "label": "Backstage", "onAutoForward": "notify" },
+    "5000": { "label": "Docusaurus", "onAutoForward": "notify" },
+    "8080": { "label": "App Server", "onAutoForward": "notify" }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "HashiCorp.terraform",
+        "ms-python.python",
+        "task.vscode-task",
+        "redhat.vscode-yaml",
+        "AmazonWebServices.aws-toolkit-vscode",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "/bin/bash",
+            "args": ["--login"]
+          }
+        },
+        "editor.formatOnSave": true,
+        "dev.containers.showLogsTerminal": "never"
+      }
+    }
+  },
+  // Environment: Starship + AWS + Terminal colors
+  "remoteEnv": {
+    "TERM": "xterm-256color",
+    "COLORTERM": "truecolor",
+    "STARSHIP_CONFIG": "/home/os/.config/starship.toml",
+    "AWS_CONFIG_FILE": "/home/os/.aws/config",
+    "AWS_SHARED_CREDENTIALS_FILE": "/home/os/.aws/credentials"
+  },
+  "remoteUser": "os"
+}
